@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+    <title>AI Assisted Stakeholder Preference Evaluator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        var app = angular.module('myApp', []);
+        console.log('start')
+        app.filter('newline', function($sce) {
+            return function(text) {
+                return $sce.trustAsHtml(text.replace(/\n/g, '<br>'));
+            };
+        });
+        app.config(function($interpolateProvider) {
+            $interpolateProvider.startSymbol('[[');
+            $interpolateProvider.endSymbol(']]');
+        });
+        app.controller('StakeholderEngagementController', function($scope, $http, $timeout) {
+            $scope.selectedDirection = ''
+            $scope.prediction = 0
+         
+
+        $scope.buttons = [
+            { id: 1, label: 'Persona A', text: 'Persona A', content: 'Content for Button 1' },
+            { id: 2, label: 'Persona B', text: 'Persona B', content: 'Content for Button 2' },
+            { id: 3, label: 'Persona C', text: 'Persona C', content: 'Content for Button 3' },
+            { id: 4, label: 'Persona D', text: 'Persona D', content: 'Content for Button 4' },
+            { id: 5, label: 'Persona E', text: 'Persona E', content: 'Content for Button 5' }
+        ];
+
+        $scope.selectedButton = null;
+        $scope.selectedText = '';
+        $scope.selectedContent = '';
+
+    $scope.selectButton = function(id) {
+        $scope.selectedButton = id;
+        $scope.personaToDisplay = '';
+        
+    };
+    $scope.selectButton(1);
+ 
+          
+            $scope.userInput = '';
+            $scope.gptResponse = '';
+            $scope.loading = false;
+            
+            $scope.sendText = function() {
+                $scope.loading = true;
+                var userInputFinal = 'Report to Persona ' + $scope.personaToDisplay.Persona + ' with updates following updates through an email' + $scope.userInput 
+                var request = { text: userInputFinal} //generate assistant
+                $http.post('/generate', request).then(function successCallback(response) {
+                    $scope.gptResponse = response.data.response;
+                    $scope.loading = false;
+                }, function errorCallback(response) {
+                    console.error('Error: ', response);
+                    $scope.loading = false;
+                });
+            };
+
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #854bbe;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .column {
+            flex: 1;
+            padding: 10px;
+        }
+        .btn-custom{
+            background: #854bbe;
+            border-color: #854bbe;
+        }
+        .margin-top-20{
+            margin-top:20px;
+        }
+        .margin-bottom-10{
+            margin-bottom: 10px;
+        }
+        .persona-btn{
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        .cutom-active{
+            color: white;
+            background: #854bbe;
+            border-color: #854bbe;
+        }
+        .margin-bottom-40{
+            margin-top: 40px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px;
+            display: flex;
+        }
+        .custom-textarea{
+            min-width: 470px;
+            min-height: 500px;
+        }
+        .custom-logo{
+            border-radius: 50%;
+        }
+    </style>
+
+
+
+</head>
+<body ng-controller="StakeholderEngagementController">
+    <div class="header">
+        <!-- <div><img class="custom-logo" src="{{url_for('static', filename='stakeholder-persona-logo.webp')}}" alt="Your Company Logo" width="100"></div> -->
+        <div><h1>Persona Communicator</h1></div>
+    </div>
+
+
+
+    <div class="container mt-5 margin-top-20">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="card margin-bottom-40">
+                    <div class="card-body">
+                       <!-- Button Group -->
+                       <div>
+                        <b>Select a Persona and enter text to generate a communication strategy</b>
+                       </div>
+                        <div class="btn-group mb-3 margin-bottom-10" role="group">
+                            <button type="button" class="btn btn-secondary persona-btn" ng-repeat="button in buttons" ng-click="selectButton(button.id)" ng-class="{'cutom-active': selectedButton === button.id}">[[ button.label]]</button>
+                        </div>
+                        <div>
+                            <textarea class="custom-textarea" ng-model="userInput" placeholder="Enter your text here" rows="4" cols="50"></textarea>
+                            <div>
+                                <button class="btn btn-primary mt-3 btn-custom" ng-click="sendText()">Generate Message</button>
+                            </div>
+                            <div ng-if="gptResponse.content && !loading">
+                                <div>Response:</div>
+                                <p ng-bind-html="gptResponse.content  | newline"></p>
+                            </div>
+                            <div ng-if="loading">
+                                <img class="custom-logo" src="{{url_for('static', filename='loading.gif')}}" alt="Your Company Logo" width="100">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    </div>
+
+
+    
+</body>
+</html>
